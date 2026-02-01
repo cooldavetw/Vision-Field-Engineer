@@ -1,7 +1,7 @@
 """
 Streamlit camera snapshot demo:
 - Capture a snapshot from the webcam
-- Send it to an OpenAI-compatible VLM (e.g. Qwen3-VL via Ollama)
+- Send it to an OpenAI-compatible VLM (e.g. moondream via Ollama)
 - Show responses on the right as a dialogue
 
 pip install streamlit openai pillow
@@ -80,10 +80,20 @@ def main():
     # 初始化 session_state
     if "vlm_config_snapshot" not in st.session_state:
         st.session_state.vlm_config_snapshot = VLMConfig(
-            api_base="http://192.168.11.20:11434/v1",
+            api_base="http://192.168.11.20:40512/v1",
             api_key="",
             model="qwen3-vl:latest",
-            prompt="Describe the scene in detail.",
+            prompt=(
+            "請以 HP 伺服器現場工程師（Field Engineer）的專業角度，"
+            "詳細描述影像中的伺服器硬體狀態。"
+            "請逐一說明所有可見的 LED 指示燈，包括其顏色、閃爍狀態（恆亮、閃爍、熄滅）、"
+            "所在位置（如電源供應器、硬碟、系統狀態燈、網路介面卡等），"
+            "並解釋每一種指示燈狀態在 HP 伺服器中的實際意義。"
+            "若有任何可能代表硬體故障、降級運作、預警或嚴重錯誤的 LED 指示，"
+            "請特別標示並明確指出可能的故障類型（例如：硬碟故障、電源異常、風扇故障、"
+            "系統板錯誤或溫度異常），並說明建議的初步檢查或維修行動。"
+            "請避免模糊描述，並使用精確、工程師等級的技術用語。"
+            ),
             max_tokens=300,
         )
 
@@ -120,27 +130,31 @@ def main():
     # ---- 左側：Camera & snapshot ----
     with col1:
         st.subheader("Webcam")
-        camera_image = st.camera_input(
-            "Camera snapshot",
-            label_visibility="collapsed",
-            help="Take a snapshot, then click the button below to run VLM.",
-            key="camera_snapshot",
+        uploaded_image = st.file_uploader(
+            "Upload an image for VLM analysis",
+            type=["png", "jpg", "jpeg"],
+            accept_multiple_files=False,
+            help="Select an image file, then click the button below to run VLM.",
+            key="uploaded_image",
         )
+        # Show the uploaded image
+        if uploaded_image is not None:
+            st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
         snapshot_btn = st.button(
             "Run VLM",
             type="primary",
             use_container_width=True,
-            disabled=camera_image is None,
+            disabled=uploaded_image is None,
         )
 
     latest_text = "Waiting for snapshot..."
     latest_latency = 0.0
 
     # ---- Run inference when button pressed ----
-    if snapshot_btn and camera_image is not None:
+    if snapshot_btn and uploaded_image is not None:
         with st.spinner("Running VLM..."):
             try:
-                pil_image = Image.open(camera_image).convert("RGB")
+                pil_image = Image.open(uploaded_image).convert("RGB")
                 resized = pil_image.resize((640, 360))
                 latest_text, latest_latency = call_vlm(cfg_snapshot, resized)
             except Exception as exc:
@@ -170,7 +184,7 @@ def main():
 
     st.markdown(
         "Tip: run a local Ollama/vLLM/NIM endpoint with a vision model "
-        "(e.g., `qwen3-vl` on Ollama) and set API Base to its `/v1` URL. "
+        "(e.g., `moondream` on Ollama) and set API Base to its `/v1` URL. "
         "Accept webcam permissions, take a snapshot, then click **Take snapshot & run VLM**."
     )
 
