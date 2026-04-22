@@ -80,9 +80,9 @@ def main():
     # 初始化 session_state
     if "vlm_config_snapshot" not in st.session_state:
         st.session_state.vlm_config_snapshot = VLMConfig(
-            api_base="http://192.168.11.20:40512/v1",
+            api_base="http://192.168.66.26:40962/v1",
             api_key="",
-            model="qwen3-vl:latest",
+            model="vlm",
             prompt=(
             "請以 HP 伺服器現場工程師（Field Engineer）的專業角度，"
             "詳細描述影像中的故障伺服器面板上代表硬體故障、降級運作、預警或嚴重錯誤的 LED 指示，"
