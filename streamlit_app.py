@@ -82,7 +82,7 @@ def main():
         st.session_state.vlm_config_snapshot = VLMConfig(
             api_base="http://llm-proxy:4000/v1",
             api_key="abcd",
-            model="vl-8b",
+            model="vlm-8b",
             prompt=(
             "請以 HP 伺服器現場工程師（Field Engineer）的專業角度，"
             "詳細描述影像中的故障伺服器面板上代表硬體故障、降級運作、預警或嚴重錯誤的 LED 指示，"
